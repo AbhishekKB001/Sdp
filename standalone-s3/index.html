@@ -97,6 +97,12 @@
           <span>Compare</span>
           <span id="nav-compare-count" class="hidden bg-orange-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">0</span>
         </button>
+
+        <!-- My Deals / Orders Button -->
+        <button onclick="openMyOrdersModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 transition-all">
+          <span>📦 My Deals</span>
+          <span id="nav-orders-count" class="bg-orange-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-black">0</span>
+        </button>
       </div>
 
     </div>
@@ -292,6 +298,25 @@
         <button onclick="closeCompareModal()" class="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white">✕</button>
       </div>
       <div id="compare-table-container" class="p-6 overflow-x-auto"></div>
+  <!-- ================= ORDER / PURCHASE MODAL ================= -->
+  <div id="order-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+    <div class="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl text-slate-100 flex flex-col my-auto">
+      <button onclick="closeOrderModal()" class="absolute top-4 right-4 z-20 p-2 rounded-full bg-slate-950/80 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors">✕</button>
+      <div id="order-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ================= MY ORDERS / DEALS MODAL ================= -->
+  <div id="my-orders-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+    <div class="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl text-slate-100 flex flex-col my-auto">
+      <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-black text-white">📦 My Motorcycle Deals & Orders</h3>
+          <p class="text-xs text-slate-400">Track and view your vehicle booking receipts</p>
+        </div>
+        <button onclick="closeMyOrdersModal()" class="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white">✕</button>
+      </div>
+      <div id="my-orders-list" class="p-6 space-y-4 max-h-[70vh] overflow-y-auto"></div>
     </div>
   </div>
 
@@ -599,6 +624,7 @@
       updatePriceSliderRange();
       renderBikes();
       updateCompareCount();
+      updateOrdersCount();
       updateCalculator();
       populateEMIDropdown();
     }
@@ -759,16 +785,19 @@
             </div>
 
             <!-- Price & Actions -->
-            <div class="pt-3 border-t border-slate-800/80">
-              <div class="flex items-center justify-between mb-3">
+            <div class="pt-3 border-t border-slate-800/80 space-y-2">
+              <div class="flex items-center justify-between">
                 <span class="text-[10px] uppercase font-semibold text-slate-500">Market Price</span>
                 <span class="text-lg font-black text-orange-400">${formatPrice(bike.priceUSD, bike.priceINR)}</span>
               </div>
+              <button onclick="openOrderModal('${bike.id}')" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 transition-all">
+                <span>⚡ Make a Deal / Book Online</span>
+              </button>
               <div class="grid grid-cols-2 gap-2 text-xs font-bold">
                 <button onclick="toggleCompare('${bike.id}')" class="py-2 px-2.5 rounded-xl border transition-all ${isComparing ? 'bg-orange-500 text-white border-orange-400' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'}">
                   ${isComparing ? 'Added ✓' : '+ Compare'}
                 </button>
-                <button onclick="openDetailsModal('${bike.id}')" class="py-2 px-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/20">
+                <button onclick="openDetailsModal('${bike.id}')" class="py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
                   Specs →
                 </button>
               </div>
@@ -836,7 +865,10 @@
           </div>
         </div>
 
-        <div class="p-4 border-t border-slate-800 bg-slate-950 flex justify-end">
+        <div class="p-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between">
+          <button onclick="openOrderModal('${bike.id}'); closeDetailsModal();" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 text-white font-bold text-xs shadow-lg shadow-orange-500/30 flex items-center gap-2">
+            <span>⚡ Make a Deal / Book This Bike</span>
+          </button>
           <button onclick="closeDetailsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs">Close</button>
         </div>
       `;
@@ -949,6 +981,317 @@
       document.getElementById('emi-monthly-output').innerText = (currentCurrency === 'INR' ? '₹' + emi.toLocaleString('en-IN') : '$' + emi.toLocaleString('en-US')) + ' /mo';
       document.getElementById('emi-interest-output').innerText = currentCurrency === 'INR' ? '₹' + interest.toLocaleString('en-IN') : '$' + interest.toLocaleString('en-US');
       document.getElementById('emi-total-output').innerText = currentCurrency === 'INR' ? '₹' + (totalPay + dp).toLocaleString('en-IN') : '$' + (totalPay + dp).toLocaleString('en-US');
+    }
+
+    // ==========================================
+    // ORDERING & PURCHASING DEAL SYSTEM
+    // ==========================================
+    let orders = JSON.parse(localStorage.getItem('motoverse_orders') || '[]');
+    let currentOrderBike = null;
+    let selectedDealPlan = 'token'; // 'token' | 'finance' | 'full'
+
+    function updateOrdersCount() {
+      const badge = document.getElementById('nav-orders-count');
+      if (badge) {
+        badge.innerText = orders.length;
+      }
+    }
+
+    function openOrderModal(bikeId) {
+      const bike = BIKES.find(b => b.id === bikeId);
+      if (!bike) return;
+
+      currentOrderBike = bike;
+      selectedDealPlan = 'token';
+      renderOrderModalContent();
+      document.getElementById('order-modal').classList.remove('hidden');
+    }
+
+    function closeOrderModal() {
+      document.getElementById('order-modal').classList.add('hidden');
+    }
+
+    function selectDealPlan(plan) {
+      selectedDealPlan = plan;
+      renderOrderModalContent();
+    }
+
+    function renderOrderModalContent() {
+      const bike = currentOrderBike;
+      if (!bike) return;
+
+      const isINR = currentCurrency === 'INR';
+      const basePrice = isINR ? bike.priceINR : bike.priceUSD;
+      const tokenAmount = isINR ? 10000 : 500;
+      const insurance = isINR ? 15000 : 650;
+      const rtoRegistration = isINR ? Math.round(basePrice * 0.08) : 350;
+      const totalOnRoad = basePrice + insurance + rtoRegistration;
+      const monthlyEmiEstimate = Math.round((basePrice * 0.8 * 0.007) / (1 - Math.pow(1.007, -36))) || Math.round(basePrice / 36);
+
+      let amountDueToday = tokenAmount;
+      if (selectedDealPlan === 'full') amountDueToday = totalOnRoad;
+      if (selectedDealPlan === 'finance') amountDueToday = Math.round(basePrice * 0.2);
+
+      const body = document.getElementById('order-modal-body');
+      body.innerHTML = `
+        <div class="p-6 border-b border-slate-800 bg-slate-950/60">
+          <span class="text-xs font-bold text-orange-400 uppercase tracking-widest block mb-1">Official Dealer Purchase Agreement</span>
+          <h3 class="text-xl sm:text-2xl font-black text-white">Book &amp; Lock Your Deal</h3>
+          <p class="text-xs text-slate-400 mt-1">Reserve your VIN and schedule delivery with zero hidden charges.</p>
+        </div>
+
+        <form onsubmit="handleOrderSubmit(event)" class="p-6 space-y-6 text-xs sm:text-sm">
+          
+          <!-- Selected Motorcycle Card -->
+          <div class="flex items-center gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
+            <img src="${bike.image}" class="w-24 h-20 object-cover rounded-xl border border-slate-800 shrink-0" />
+            <div class="flex-1 min-w-0">
+              <span class="text-[10px] font-bold text-orange-400 uppercase tracking-widest block">${bike.brand} · ${bike.category}</span>
+              <h4 class="text-base font-black text-white truncate">${bike.name}</h4>
+              <p class="text-xs text-slate-400 mt-0.5">${bike.specs.engine}</p>
+              <div class="text-sm font-black text-orange-400 mt-1">${formatPrice(bike.priceUSD, bike.priceINR)}</div>
+            </div>
+          </div>
+
+          <!-- Step 1: Choose Deal Payment Plan -->
+          <div>
+            <label class="font-bold text-slate-300 block mb-2 uppercase text-xs tracking-wider">1. Select Purchase / Payment Method</label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              
+              <div onclick="selectDealPlan('token')" class="p-3.5 rounded-xl border cursor-pointer transition-all ${selectedDealPlan === 'token' ? 'bg-orange-500/10 border-orange-500 ring-2 ring-orange-500/20' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-white text-xs">Token Booking</span>
+                  <span class="w-3 h-3 rounded-full ${selectedDealPlan === 'token' ? 'bg-orange-500' : 'border border-slate-600'}"></span>
+                </div>
+                <div class="text-sm font-black text-emerald-400">${isINR ? '₹10,000' : '$500'}</div>
+                <p class="text-[10px] text-slate-400 mt-1 leading-snug">Lock in bike &amp; priority delivery. 100% refundable.</p>
+              </div>
+
+              <div onclick="selectDealPlan('finance')" class="p-3.5 rounded-xl border cursor-pointer transition-all ${selectedDealPlan === 'finance' ? 'bg-orange-500/10 border-orange-500 ring-2 ring-orange-500/20' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-white text-xs">0% Down EMI</span>
+                  <span class="w-3 h-3 rounded-full ${selectedDealPlan === 'finance' ? 'bg-orange-500' : 'border border-slate-600'}"></span>
+                </div>
+                <div class="text-sm font-black text-cyan-400">${isINR ? '₹' + monthlyEmiEstimate.toLocaleString('en-IN') : '$' + monthlyEmiEstimate.toLocaleString('en-US')}<span class="text-[10px]">/mo</span></div>
+                <p class="text-[10px] text-slate-400 mt-1 leading-snug">Pre-approved financing loan. Pay down payment on delivery.</p>
+              </div>
+
+              <div onclick="selectDealPlan('full')" class="p-3.5 rounded-xl border cursor-pointer transition-all ${selectedDealPlan === 'full' ? 'bg-orange-500/10 border-orange-500 ring-2 ring-orange-500/20' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-white text-xs">Full Purchase</span>
+                  <span class="w-3 h-3 rounded-full ${selectedDealPlan === 'full' ? 'bg-orange-500' : 'border border-slate-600'}"></span>
+                </div>
+                <div class="text-sm font-black text-orange-400">${formatPrice(bike.priceUSD, bike.priceINR)}</div>
+                <p class="text-[10px] text-slate-400 mt-1 leading-snug">Outright buyout with free home delivery &amp; registration.</p>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Step 2: Customer Delivery Details -->
+          <div>
+            <label class="font-bold text-slate-300 block mb-2 uppercase text-xs tracking-wider">2. Buyer &amp; Showroom Delivery Details</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">Full Legal Name *</label>
+                <input type="text" id="order-buyer-name" required placeholder="John Doe" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">Mobile Phone Number *</label>
+                <input type="tel" id="order-buyer-phone" required placeholder="+1 (555) 234-5678" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">Email Address *</label>
+                <input type="email" id="order-buyer-email" required placeholder="john@example.com" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label class="text-[11px] text-slate-400 block mb-1">Preferred Authorized Dealership *</label>
+                <select id="order-showroom" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:border-orange-500">
+                  <option value="Downtown Flagship Motors">Downtown Flagship Showroom</option>
+                  <option value="Westside High Performance Track Center">Westside Motorsport Hub</option>
+                  <option value="Metro Airport Boulevard Dealership">Metro Airport Dealership</option>
+                  <option value="Direct Home / Office Flatbed Delivery">Direct Doorstep Flatbed Delivery</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Transparent Price Summary Breakdown -->
+          <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+            <div class="flex justify-between text-slate-400">
+              <span>Vehicle Ex-Showroom Base Price:</span>
+              <span class="text-white font-semibold">${formatPrice(bike.priceUSD, bike.priceINR)}</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Comprehensive 1-Year Insurance:</span>
+              <span class="text-white font-semibold">${isINR ? '₹15,000' : '$650'}</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Registration &amp; Road Documentation:</span>
+              <span class="text-emerald-400 font-semibold">Included in Deal ($0)</span>
+            </div>
+            <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-sm">
+              <span class="font-bold text-white">Amount Due Today to Lock Deal:</span>
+              <span class="text-xl font-black text-emerald-400">${isINR ? '₹' + amountDueToday.toLocaleString('en-IN') : '$' + amountDueToday.toLocaleString('en-US')}</span>
+            </div>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="pt-2 flex items-center justify-between gap-3">
+            <button type="button" onclick="closeOrderModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors">
+              Cancel
+            </button>
+            <button type="submit" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 font-black text-white text-xs sm:text-sm shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2 transition-all">
+              <span>⚡ Confirm Order &amp; Lock Deal Now</span>
+            </button>
+          </div>
+
+        </form>
+      `;
+    }
+
+    function handleOrderSubmit(e) {
+      e.preventDefault();
+      const bike = currentOrderBike;
+      if (!bike) return;
+
+      const name = document.getElementById('order-buyer-name').value.trim();
+      const phone = document.getElementById('order-buyer-phone').value.trim();
+      const email = document.getElementById('order-buyer-email').value.trim();
+      const showroom = document.getElementById('order-showroom').value;
+
+      if (!name || !phone || !email) {
+        alert('Please fill out all required buyer details.');
+        return;
+      }
+
+      const orderId = 'MV-2026-' + Math.floor(10000 + Math.random() * 90000);
+      const isINR = currentCurrency === 'INR';
+      const tokenAmount = isINR ? 10000 : 500;
+      let amountPaid = tokenAmount;
+      if (selectedDealPlan === 'full') amountPaid = isINR ? bike.priceINR : bike.priceUSD;
+      if (selectedDealPlan === 'finance') amountPaid = Math.round((isINR ? bike.priceINR : bike.priceUSD) * 0.2);
+
+      const newOrder = {
+        id: orderId,
+        bikeId: bike.id,
+        bikeName: bike.name,
+        bikeBrand: bike.brand,
+        bikeImage: bike.image,
+        category: bike.category,
+        priceFormatted: formatPrice(bike.priceUSD, bike.priceINR),
+        amountPaidFormatted: isINR ? '₹' + amountPaid.toLocaleString('en-IN') : '$' + amountPaid.toLocaleString('en-US'),
+        plan: selectedDealPlan === 'token' ? 'Token Reservation Deposit' : selectedDealPlan === 'finance' ? 'Financing EMI Deal' : 'Full Purchase',
+        buyerName: name,
+        buyerPhone: phone,
+        buyerEmail: email,
+        showroom: showroom,
+        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        deliveryEstimate: '7 to 10 Business Days'
+      };
+
+      orders.unshift(newOrder);
+      localStorage.setItem('motoverse_orders', JSON.stringify(orders));
+      updateOrdersCount();
+
+      // Show Official Invoice / Confirmation Receipt
+      const body = document.getElementById('order-modal-body');
+      body.innerHTML = `
+        <div class="p-8 text-center space-y-5 animate-fadeIn">
+          
+          <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto text-3xl font-black ring-8 ring-emerald-500/10">
+            ✓
+          </div>
+
+          <div>
+            <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[11px] font-bold uppercase tracking-wider">
+              Deal Confirmed · VIN Allocated
+            </span>
+            <h3 class="text-2xl sm:text-3xl font-black text-white mt-2">Congratulations, ${name}!</h3>
+            <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+              Your purchase booking for the <strong class="text-orange-400">${bike.name}</strong> has been officially confirmed and logged in the showroom system.
+            </p>
+          </div>
+
+          <!-- Official Invoice Ticket -->
+          <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 text-left text-xs space-y-3 font-mono">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-800">
+              <span class="text-slate-400 uppercase">Booking ID:</span>
+              <span class="text-base font-black text-orange-400">${orderId}</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-slate-300">
+              <div><span class="text-slate-500 block text-[10px]">VEHICLE:</span>${bike.name}</div>
+              <div><span class="text-slate-500 block text-[10px]">PAYMENT PLAN:</span>${newOrder.plan}</div>
+              <div><span class="text-slate-500 block text-[10px]">AMOUNT PAID:</span><strong class="text-emerald-400">${newOrder.amountPaidFormatted}</strong></div>
+              <div><span class="text-slate-500 block text-[10px]">TOTAL PRICE:</span>${newOrder.priceFormatted}</div>
+              <div><span class="text-slate-500 block text-[10px]">SHOWROOM:</span>${showroom}</div>
+              <div><span class="text-slate-500 block text-[10px]">EST. DELIVERY:</span>${newOrder.deliveryEstimate}</div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 text-[10px] text-slate-400 font-sans">
+              Confirmation SMS and formal contract details have been dispatched to <strong>${phone}</strong> and <strong>${email}</strong>.
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+            <button onclick="window.print()" class="w-full sm:w-1/2 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+              <span>🖨️ Print / Save Receipt</span>
+            </button>
+            <button onclick="closeOrderModal()" class="w-full sm:w-1/2 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs transition-colors">
+              Done &amp; Return to Showroom
+            </button>
+          </div>
+
+        </div>
+      `;
+    }
+
+    function openMyOrdersModal() {
+      const container = document.getElementById('my-orders-list');
+      if (orders.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-slate-400 space-y-2">
+            <p class="text-3xl">📦</p>
+            <p class="text-sm font-bold text-white">No Active Orders Yet</p>
+            <p class="text-xs text-slate-500 max-w-xs mx-auto">Click "⚡ Make a Deal / Book Online" on any motorcycle card to purchase or reserve a bike.</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = orders.map((ord, idx) => `
+          <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <img src="${ord.bikeImage}" class="w-16 h-12 object-cover rounded-lg border border-slate-800" />
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold text-orange-400 font-mono">${ord.id}</span>
+                  <span class="text-[9px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold uppercase">Confirmed</span>
+                </div>
+                <h4 class="text-sm font-black text-white">${ord.bikeName}</h4>
+                <p class="text-[11px] text-slate-400">${ord.plan} · <strong class="text-emerald-400">${ord.amountPaidFormatted}</strong> paid</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">${ord.showroom} · ${ord.date}</p>
+              </div>
+            </div>
+            <button onclick="cancelOrder('${ord.id}')" class="text-xs px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-semibold transition-colors self-end sm:self-center">
+              Cancel Deal
+            </button>
+          </div>
+        `).join('');
+      }
+      document.getElementById('my-orders-modal').classList.remove('hidden');
+    }
+
+    function closeMyOrdersModal() {
+      document.getElementById('my-orders-modal').classList.add('hidden');
+    }
+
+    function cancelOrder(id) {
+      if (!confirm('Are you sure you want to cancel this booking? Any reservation fee will be processed for refund.')) return;
+      orders = orders.filter(o => o.id !== id);
+      localStorage.setItem('motoverse_orders', JSON.stringify(orders));
+      updateOrdersCount();
+      openMyOrdersModal();
     }
 
     // Run on startup
